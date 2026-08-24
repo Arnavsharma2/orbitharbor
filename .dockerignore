@@ -1,0 +1,15 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.py[cod]
+.coverage
+coverage.xml
+htmlcov
+docs
+logs
+tests
+config/settings.yaml
+imagery/downloads
+imagery/events
+imagery/processed
