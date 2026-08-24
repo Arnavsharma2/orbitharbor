@@ -161,7 +161,7 @@ def main() -> None:
                     aircraft = normalize_aircraft(raw)
                     if aircraft:
                         producer.send(topic, value=aircraft)
-                        logger.info(
+                        logger.debug(
                             "Published | ICAO: %s | Callsign: %s | Lat: %s Lon: %s | Alt: %sm",
                             aircraft["icao24"],
                             aircraft["callsign"],
