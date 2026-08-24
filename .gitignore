@@ -1,0 +1,10 @@
+settings.yaml
+.vscode
+.mypy_cache
+logs/*.log
+__pycache__
+*.safe
+*.tif
+*.zip
+*.json
+.coverage

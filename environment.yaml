@@ -1,0 +1,31 @@
+# environment.yaml
+---
+name: geo-pipeline
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - gdal
+  - rasterio
+  - libgdal-jp2openjpeg
+  - pytorch
+  - torchvision
+  - pip
+  - pip:
+      - kafka-python
+      - psycopg2-binary
+      - python-dotenv
+      - requests
+      - websockets
+      - pydantic
+      - loguru
+      - pytest
+      - pyyaml
+      - minio
+      - shapely
+      - snowflake-connector-python
+      - pytest-cov
+      - pydeck
+      - streamlit
+      - pandas
