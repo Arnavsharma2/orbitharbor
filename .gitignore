@@ -1,10 +1,15 @@
 settings.yaml
 .vscode
 .mypy_cache
+.pytest_cache
+.DS_Store
 logs/*.log
 __pycache__
+*.py[cod]
 *.safe
 *.tif
 *.zip
 *.json
 .coverage
+coverage.xml
+htmlcov/
