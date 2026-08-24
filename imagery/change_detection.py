@@ -166,7 +166,8 @@ def detect_anomalies(
     if patch_size <= 0:
         raise ValueError("patch_size must be greater than zero")
 
-    delta = np.abs(ndvi_new - ndvi_old)
+    delta = np.subtract(ndvi_new, ndvi_old)
+    np.abs(delta, out=delta)
     rows, cols = delta.shape
     if rows == 0 or cols == 0:
         return []
