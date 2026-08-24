@@ -7,6 +7,7 @@ and aircraft tracks in space and time.
 from __future__ import annotations
 import logging
 from math import atan2, cos, radians, sin, sqrt
+import numpy as np
 import pandas as pd
 from config.logging_config import setup_logging
 
@@ -23,6 +24,32 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     dlambda = radians(lon2 - lon1)
     a = sin(dphi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(dlambda / 2) ** 2
     return EARTH_RADIUS_KM * 2 * atan2(sqrt(a), sqrt(1 - a))
+
+
+def _distance_series_km(
+    latitude: float,
+    longitude: float,
+    tracks: pd.DataFrame,
+) -> pd.Series:
+    """Vectorized great-circle distances from one point to many tracks."""
+    latitudes = pd.to_numeric(tracks["latitude"], errors="coerce").to_numpy(
+        dtype=float
+    )
+    longitudes = pd.to_numeric(tracks["longitude"], errors="coerce").to_numpy(
+        dtype=float
+    )
+
+    phi1 = np.radians(latitude)
+    phi2 = np.radians(latitudes)
+    dphi = np.radians(latitudes - latitude)
+    dlambda = np.radians(longitudes - longitude)
+    a = np.sin(dphi / 2) ** 2 + np.cos(phi1) * np.cos(phi2) * np.sin(
+        dlambda / 2
+    ) ** 2
+    distances = EARTH_RADIUS_KM * 2 * np.arctan2(
+        np.sqrt(a), np.sqrt(np.clip(1 - a, 0, 1))
+    )
+    return pd.Series(distances, index=tracks.index)
 
 
 def get_anomaly_center(
@@ -83,10 +110,7 @@ def find_nearby_vessels(
         return pd.DataFrame()
 
     df = vessel_df.copy()
-    df["distance_km"] = df.apply(
-        lambda r: haversine_km(anomaly_lat, anomaly_lon, r["latitude"], r["longitude"]),
-        axis=1,
-    )
+    df["distance_km"] = _distance_series_km(anomaly_lat, anomaly_lon, df)
     return (
         df[df["distance_km"] <= radius_km]
         .sort_values("distance_km")
@@ -116,10 +140,7 @@ def find_nearby_aircraft(
         return pd.DataFrame()
 
     df = aircraft_df.copy()
-    df["distance_km"] = df.apply(
-        lambda r: haversine_km(anomaly_lat, anomaly_lon, r["latitude"], r["longitude"]),
-        axis=1,
-    )
+    df["distance_km"] = _distance_series_km(anomaly_lat, anomaly_lon, df)
     return (
         df[df["distance_km"] <= radius_km]
         .sort_values("distance_km")
