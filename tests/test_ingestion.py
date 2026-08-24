@@ -247,6 +247,17 @@ class TestAISBuildProducer:
             call_kwargs = mock_kafka.call_args[1]
             assert "value_serializer" in call_kwargs
 
+    def test_build_producer_batches_compressed_messages(self):
+        """AIS publishing uses a short batching window and compression."""
+        with patch("ingestion.ais_producer.KafkaProducer") as mock_kafka:
+            from ingestion.ais_producer import build_producer
+
+            build_producer()
+            call_kwargs = mock_kafka.call_args.kwargs
+
+            assert call_kwargs["linger_ms"] == 25
+            assert call_kwargs["compression_type"] == "gzip"
+
     def test_normalize_vessel_extended_class_b(self):
         """Extended Class B position report normalizes correctly."""
         from ingestion.ais_producer import normalize_vessel

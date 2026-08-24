@@ -32,6 +32,8 @@ def build_producer() -> KafkaProducer:
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         acks="all",
         retries=3,
+        linger_ms=25,
+        compression_type="gzip",
     )
 
 
