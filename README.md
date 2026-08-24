@@ -314,4 +314,4 @@ orbitharbor/
 
 ## Upstream Attribution
 
-OrbitHarbor built upon the Apache-2.0-licensed [cristi4nhdz/geospatial-activity-pipeline](https://github.com/cristi4nhdz/geospatial-activity-pipeline) project by [@cristi4nhdz](https://github.com/cristi4nhdz). The upstream [`LICENSE`](LICENSE) is preserved, and [`NOTICE`](NOTICE) records the source and license attribution.
+OrbitHarbor built upon Apache-2.0-licensed [cristi4nhdz/geospatial-activity-pipeline](https://github.com/cristi4nhdz/geospatial-activity-pipeline). The upstream [`LICENSE`](LICENSE) is preserved, and [`NOTICE`](NOTICE) records the source and license attribution.
