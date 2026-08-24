@@ -234,6 +234,17 @@ class TestBuildProducer:
             build_producer()
             assert mock_kafka.called
 
+    def test_adsb_producer_batches_compressed_messages(self):
+        """ADS-B publishing uses a short batching window and compression."""
+        with patch("ingestion.adsb_producer.KafkaProducer") as mock_kafka:
+            from ingestion.adsb_producer import build_producer
+
+            build_producer()
+            call_kwargs = mock_kafka.call_args.kwargs
+
+            assert call_kwargs["linger_ms"] == 25
+            assert call_kwargs["compression_type"] == "gzip"
+
 
 class TestAISBuildProducer:
     """Tests for AIS producer builder."""
