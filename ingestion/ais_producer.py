@@ -122,7 +122,7 @@ async def stream_vessels(producer: KafkaProducer) -> None:
 
                 if vessel and vessel["mmsi"]:
                     producer.send(topic, value=vessel)
-                    logger.info(
+                    logger.debug(
                         "Published | MMSI: %s | Name: %s | Lat: %s Lon: %s | Speed: %skn",
                         vessel["mmsi"],
                         vessel["vessel_name"],
