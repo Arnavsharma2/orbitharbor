@@ -26,10 +26,17 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
+    - name: Cache Conda packages
+      uses: actions/cache@v6
+      with:
+        path: ~/conda_pkgs_dir
+        key: conda-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('environment.yaml') }}
+
     - name: Setup Miniconda
       uses: conda-incubator/setup-miniconda@v4
       with:
         auto-update-conda: true
+        use-only-tar-bz2: true
         python-version: '3.13'
         environment-file: environment.yaml
         activate-environment: orbitharbor
