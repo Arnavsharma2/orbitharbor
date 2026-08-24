@@ -18,6 +18,7 @@ from ingestion.validation import coordinates_are_valid
 setup_logging("adsb_producer.log")
 
 logger = logging.getLogger(__name__)
+HTTP_SESSION = requests.Session()
 
 # OpenSky state vector field positions
 FIELDS = [
@@ -83,7 +84,7 @@ def fetch_aircraft() -> list[dict]:
     )
 
     try:
-        response = requests.get(url, params=params, auth=auth, timeout=10)
+        response = HTTP_SESSION.get(url, params=params, auth=auth, timeout=10)
         response.raise_for_status()
         data = response.json()
         states = data.get("states") or []
@@ -180,6 +181,7 @@ def main() -> None:
     finally:
         producer.flush()
         producer.close()
+        HTTP_SESSION.close()
 
 
 if __name__ == "__main__":

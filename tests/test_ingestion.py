@@ -155,7 +155,7 @@ class TestFetchAircraft:
 
     def test_fetch_aircraft_returns_list(self):
         """fetch_aircraft returns list of dicts on success."""
-        with patch("ingestion.adsb_producer.requests.get") as mock_get:
+        with patch("ingestion.adsb_producer.HTTP_SESSION.get") as mock_get:
             mock_response = MagicMock()
             mock_response.json.return_value = {
                 "states": [
@@ -191,7 +191,7 @@ class TestFetchAircraft:
 
     def test_fetch_aircraft_returns_empty_on_error(self):
         """fetch_aircraft returns empty list on request error."""
-        with patch("ingestion.adsb_producer.requests.get") as mock_get:
+        with patch("ingestion.adsb_producer.HTTP_SESSION.get") as mock_get:
             import requests
 
             mock_get.side_effect = requests.RequestException("timeout")
@@ -203,7 +203,7 @@ class TestFetchAircraft:
 
     def test_fetch_aircraft_handles_empty_states(self):
         """fetch_aircraft handles response with no states."""
-        with patch("ingestion.adsb_producer.requests.get") as mock_get:
+        with patch("ingestion.adsb_producer.HTTP_SESSION.get") as mock_get:
             mock_response = MagicMock()
             mock_response.json.return_value = {"states": None}
             mock_response.raise_for_status.return_value = None
