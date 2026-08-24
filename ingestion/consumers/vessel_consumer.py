@@ -67,19 +67,23 @@ INSERT_SQL = """
 """
 
 
-def upsert_vessel(cursor: psycopg2.extensions.cursor, vessel: dict) -> None:
+def upsert_vessel(cursor: psycopg2.extensions.cursor, vessel: dict) -> bool:
     """
     Insert a normalized vessel record into vessel_tracks.
 
     Args:
         cursor: Active psycopg2 cursor.
         vessel: Normalized vessel dict from Kafka.
+
+    Returns:
+        True when an insert was issued, otherwise False.
     """
     if not coordinates_are_valid(vessel.get("latitude"), vessel.get("longitude")):
-        return
+        return False
 
     vessel["received_at"] = datetime.now(timezone.utc)
     cursor.execute(INSERT_SQL, vessel)
+    return True
 
 
 def main() -> None:
@@ -102,7 +106,9 @@ def main() -> None:
         for message in consumer:
             vessel = message.value
             try:
-                upsert_vessel(cursor, vessel)
+                if not upsert_vessel(cursor, vessel):
+                    logger.debug("Skipped vessel with invalid coordinates")
+                    continue
                 conn.commit()
                 logger.info(
                     "Upserted | MMSI: %s | Name: %s | Lat: %s Lon: %s",

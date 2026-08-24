@@ -48,8 +48,9 @@ class TestVesselConsumer:
             "source": "aisstream",
         }
 
-        upsert_vessel(cursor, vessel)
+        inserted = upsert_vessel(cursor, vessel)
         assert not cursor.execute.called
+        assert inserted is False
 
     def test_upsert_vessel_accepts_zero_coords(self):
         """upsert_vessel preserves positions on both zero axes."""
@@ -299,6 +300,30 @@ class TestVesselConsumerMain:
             main()
 
             mock_cursor.close.assert_called()
+
+    def test_main_avoids_commit_for_invalid_coordinates(self):
+        """Invalid vessel messages do not create empty transactions."""
+        message = MagicMock(
+            value={"mmsi": 123456789, "latitude": None, "longitude": None}
+        )
+
+        with patch(
+            "ingestion.consumers.vessel_consumer.build_connection"
+        ) as mock_conn, patch(
+            "ingestion.consumers.vessel_consumer.KafkaConsumer"
+        ) as mock_kafka:
+            mock_kafka.return_value.__iter__ = MagicMock(
+                return_value=iter([message])
+            )
+            mock_cursor = MagicMock()
+            mock_conn.return_value.cursor.return_value = mock_cursor
+
+            from ingestion.consumers.vessel_consumer import main
+
+            main()
+
+            mock_cursor.execute.assert_not_called()
+            mock_conn.return_value.commit.assert_not_called()
 
 
 class TestAircraftConsumerMain:
