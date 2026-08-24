@@ -86,7 +86,8 @@ class TestLoadEvents:
 
         count = load_events(event_file, cursor)
         assert count == 1
-        assert cursor.execute.call_count == 2
+        cursor.execute.assert_called_once()
+        cursor.executemany.assert_called_once()
 
     def test_load_events_skips_duplicates(self, tmp_path):
         """Duplicate records are skipped."""
@@ -114,6 +115,7 @@ class TestLoadEvents:
 
         count = load_events(event_file, cursor)
         assert count == 0
+        cursor.executemany.assert_not_called()
 
     def test_load_events_extracts_dates_from_filename(self, tmp_path):
         """Date old and new are correctly extracted from filename."""
@@ -141,8 +143,8 @@ class TestLoadEvents:
 
         load_events(event_file, cursor)
 
-        insert_call = cursor.execute.call_args_list[-1]
-        params = insert_call[0][1]
+        insert_call = cursor.executemany.call_args
+        params = insert_call[0][1][0]
         assert params[0] == "20260409"
         assert params[1] == "20260411"
 
@@ -173,7 +175,9 @@ class TestLoadEvents:
 
         count = load_events(event_file, cursor)
         assert count == 5
-        assert cursor.execute.call_count == 6
+        cursor.execute.assert_called_once()
+        cursor.executemany.assert_called_once()
+        assert len(cursor.executemany.call_args[0][1]) == 5
 
 
 class TestSnowflakeSetup:

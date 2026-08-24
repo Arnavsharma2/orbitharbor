@@ -21,6 +21,18 @@ logger = logging.getLogger(__name__)
 
 EVENTS_DIR = Path("imagery/events")
 
+INSERT_SQL = """
+    INSERT INTO anomaly_events (
+        date_old, date_new, row_px, col_px, patch_size,
+        mean_delta, max_delta, ndvi_score, cnn_score,
+        confidence, detected_at
+    ) VALUES (
+        %s, %s, %s, %s, %s,
+        %s, %s, %s, %s,
+        %s, %s
+    )
+"""
+
 
 def get_connection() -> snowflake.connector.SnowflakeConnection:
     """
@@ -107,9 +119,9 @@ def load_events(
     with open(event_file, "r", encoding="utf-8") as f:
         events = json.load(f)
 
-    loaded = 0
     skipped = 0
     existing_keys = existing_event_keys(cur, date_old, date_new)
+    pending_rows = []
 
     for event in events:
         event_key = (event["row"], event["col"])
@@ -117,18 +129,7 @@ def load_events(
             skipped += 1
             continue
 
-        cur.execute(
-            """
-            INSERT INTO anomaly_events (
-                date_old, date_new, row_px, col_px, patch_size,
-                mean_delta, max_delta, ndvi_score, cnn_score,
-                confidence, detected_at
-            ) VALUES (
-                %s, %s, %s, %s, %s,
-                %s, %s, %s, %s,
-                %s, %s
-            )
-        """,
+        pending_rows.append(
             (
                 date_old,
                 date_new,
@@ -141,10 +142,14 @@ def load_events(
                 event["cnn_score"],
                 event["confidence"],
                 event["detected_at"],
-            ),
+            )
         )
-        loaded += 1
         existing_keys.add(event_key)
+
+    if pending_rows:
+        cur.executemany(INSERT_SQL, pending_rows)
+
+    loaded = len(pending_rows)
 
     logger.info("File: %s | Loaded: %s | Skipped: %s", event_file.name, loaded, skipped)
     return loaded
