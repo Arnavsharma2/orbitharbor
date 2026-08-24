@@ -26,7 +26,12 @@ MONITOR_GROUPS = [
 ]
 
 
-def get_lag(bootstrap_servers: str, group_id: str, topic: str) -> dict:
+def get_lag(
+    bootstrap_servers: str,
+    group_id: str,
+    topic: str,
+    consumer_cache: dict[str, KafkaConsumer] | None = None,
+) -> dict:
     """
     Calculate consumer lag for a given group and topic.
 
@@ -34,41 +39,55 @@ def get_lag(bootstrap_servers: str, group_id: str, topic: str) -> dict:
         bootstrap_servers: Kafka bootstrap server address.
         group_id: Consumer group ID to check.
         topic: Topic name to check.
+        consumer_cache: Optional long-lived consumers keyed by group ID.
 
     Returns:
         dict with partition, current offset, end offset, and lag.
     """
-    consumer = KafkaConsumer(
-        bootstrap_servers=bootstrap_servers,
-        group_id=group_id,
-        enable_auto_commit=False,
-    )
+    owns_consumer = consumer_cache is None
+    if owns_consumer:
+        consumer = KafkaConsumer(
+            bootstrap_servers=bootstrap_servers,
+            group_id=group_id,
+            enable_auto_commit=False,
+        )
+    else:
+        consumer = consumer_cache.get(group_id)
+        if consumer is None:
+            consumer = KafkaConsumer(
+                bootstrap_servers=bootstrap_servers,
+                group_id=group_id,
+                enable_auto_commit=False,
+            )
+            consumer_cache[group_id] = consumer
 
-    partitions = consumer.partitions_for_topic(topic)
-    if not partitions:
-        consumer.close()
-        return {}
+    try:
+        partitions = consumer.partitions_for_topic(topic)
+        if not partitions:
+            return {}
 
-    topic_partitions = [TopicPartition(topic, p) for p in partitions]
-    consumer.assign(topic_partitions)
+        topic_partitions = [TopicPartition(topic, p) for p in partitions]
+        consumer.assign(topic_partitions)
 
-    end_offsets = consumer.end_offsets(topic_partitions)
-    committed = {tp: consumer.committed(tp) or 0 for tp in topic_partitions}
+        end_offsets = consumer.end_offsets(topic_partitions)
+        committed = {tp: consumer.committed(tp) or 0 for tp in topic_partitions}
 
-    results = {}
-    for tp in topic_partitions:
-        end = end_offsets[tp]
-        current = committed[tp]
-        lag = end - current
-        results[tp.partition] = {
-            "partition": tp.partition,
-            "committed_offset": current,
-            "end_offset": end,
-            "lag": lag,
-        }
+        results = {}
+        for tp in topic_partitions:
+            end = end_offsets[tp]
+            current = committed[tp]
+            lag = end - current
+            results[tp.partition] = {
+                "partition": tp.partition,
+                "committed_offset": current,
+                "end_offset": end,
+                "lag": lag,
+            }
 
-    consumer.close()
-    return results
+        return results
+    finally:
+        if owns_consumer:
+            consumer.close()
 
 
 def report(interval: int = 30) -> None:
@@ -79,6 +98,7 @@ def report(interval: int = 30) -> None:
         interval: Seconds between each lag check.
     """
     bootstrap_servers = config["kafka"]["bootstrap_servers"]
+    consumer_cache: dict[str, KafkaConsumer] = {}
 
     logger.info("Lag monitor started, checking every %ss", interval)
 
@@ -88,7 +108,9 @@ def report(interval: int = 30) -> None:
                 group_id = entry["group_id"]
                 topic = entry["topic"]
 
-                lag_data = get_lag(bootstrap_servers, group_id, topic)
+                lag_data = get_lag(
+                    bootstrap_servers, group_id, topic, consumer_cache
+                )
 
                 if not lag_data:
                     logger.warning("No partition data for %s / %s", group_id, topic)
@@ -110,6 +132,9 @@ def report(interval: int = 30) -> None:
 
     except KeyboardInterrupt:
         logger.info("Shutting down lag monitor")
+    finally:
+        for consumer in consumer_cache.values():
+            consumer.close()
 
 
 if __name__ == "__main__":

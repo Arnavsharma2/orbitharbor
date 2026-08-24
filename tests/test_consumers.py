@@ -277,6 +277,22 @@ class TestLagMonitor:
 
             assert result == {}
 
+    def test_get_lag_reuses_cached_consumer(self):
+        """Repeated lag checks reuse the same Kafka connection."""
+        with patch("ingestion.consumers.lag_monitor.KafkaConsumer") as mock_kafka:
+            consumer = MagicMock()
+            consumer.partitions_for_topic.return_value = None
+            mock_kafka.return_value = consumer
+            cache = {}
+
+            from ingestion.consumers.lag_monitor import get_lag
+
+            get_lag("localhost:9092", "vessel-consumer-group", "topic", cache)
+            get_lag("localhost:9092", "vessel-consumer-group", "topic", cache)
+
+            mock_kafka.assert_called_once()
+            consumer.close.assert_not_called()
+
 
 class TestVesselConsumerMain:
     """Tests for vessel_consumer main function."""
