@@ -15,7 +15,7 @@ RUN conda env create -f environment.airflow.yaml && conda clean -afy
 
 # Force spawn mode to avoid fork/deadlock with conda
 RUN echo "import multiprocessing; multiprocessing.set_start_method('spawn', force=True)" > \
-    /opt/conda/envs/geo-pipeline/lib/python3.12/sitecustomize.py
+    /opt/conda/envs/orbitharbor/lib/python3.12/sitecustomize.py
 
 RUN mkdir -p /opt/airflow/logs/scheduler \
              /opt/airflow/logs/dag_processor_manager \
@@ -26,6 +26,6 @@ RUN mkdir -p /opt/airflow/logs/scheduler \
 
 USER airflow
 
-ENV PATH="/opt/conda/envs/geo-pipeline/bin:$PATH"
+ENV PATH="/opt/conda/envs/orbitharbor/bin:$PATH"
 ENV PYTHONPATH="/opt/airflow"
 ENV AIRFLOW_HOME="/opt/airflow"

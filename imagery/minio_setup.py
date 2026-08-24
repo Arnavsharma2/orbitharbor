@@ -2,7 +2,7 @@
 """
 MinIO Setup Module
 
-Creates the sentinel-tiles bucket in MinIO if it does not already exist.
+Creates the orbitharbor-imagery bucket in MinIO if it does not already exist.
 Run once after bringing up the Docker stack.
 """
 import os

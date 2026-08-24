@@ -16,7 +16,7 @@ import streamlit as st
 from config.config_loader import config
 from config.logging_config import setup_logging
 
-setup_logging("dashboard.log")
+setup_logging("orbitharbor-console.log")
 logger = logging.getLogger(__name__)
 
 

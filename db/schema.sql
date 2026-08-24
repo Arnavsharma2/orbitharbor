@@ -1,5 +1,5 @@
 -- db/schema.sql
--- Geospatial Activity Pipeline
+-- OrbitHarbor
 
 -- Enable PostGIS
 CREATE EXTENSION IF NOT EXISTS postgis;

@@ -3,7 +3,7 @@
 Tile Uploader Module
 
 Uploads processed Sentinel-2 GeoTIFF tiles from the local
-processed directory to the MinIO sentinel-tiles bucket.
+processed directory to the MinIO orbitharbor-imagery bucket.
 """
 import logging
 from pathlib import Path
@@ -97,7 +97,7 @@ def upload_all(date_filter: str = None) -> list[str]:
 
 def main() -> None:
     """
-    Upload all processed tiles to MinIO sentinel-tiles bucket.
+    Upload all processed tiles to MinIO orbitharbor-imagery bucket.
     """
     logger.info("Starting tile upload to MinIO")
     keys = upload_all()

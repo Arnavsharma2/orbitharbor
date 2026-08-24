@@ -10,7 +10,7 @@ from math import atan2, cos, radians, sin, sqrt
 import pandas as pd
 from config.logging_config import setup_logging
 
-setup_logging("dashboard.log")
+setup_logging("orbitharbor-console.log")
 logger = logging.getLogger(__name__)
 
 EARTH_RADIUS_KM = 6371.0

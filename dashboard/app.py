@@ -1,6 +1,6 @@
 # dashboard/app.py
 """
-Geospatial Intelligence Dashboard
+OrbitHarbor Operations Console
 Fused vessel/aircraft tracking + Sentinel land-change detection
 """
 
@@ -45,12 +45,12 @@ from dashboard.components.track_map import (
 )
 from config.logging_config import setup_logging
 
-setup_logging("dashboard.log")
+setup_logging("orbitharbor-console.log")
 logger = logging.getLogger(__name__)
 
 
 st.set_page_config(
-    page_title="Geospatial Intelligence Platform",
+    page_title="OrbitHarbor Operations",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -98,7 +98,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 AOI_NAME = config.get("aoi", {}).get("name", "Remote Monitored Area")
 AOI_SUBTITLE = config.get("aoi", {}).get(
     "subtitle",
-    "Fused Tracking + Land Change Intelligence Dashboard",
+    "Sea • Air • Land Signal Fusion",
 )
 
 st.markdown(
@@ -1348,7 +1348,7 @@ def render_sentinel_anomaly_views(
 
 def main() -> None:
     """
-    Main entry point for the Geospatial Intelligence Dashboard.
+    Main entry point for the OrbitHarbor Operations Console.
 
     Initialises session state, renders the sidebar, loads all data,
     applies filters, and renders the four-tab intelligence dashboard.
@@ -1371,7 +1371,7 @@ def main() -> None:
     st.markdown(
         f"""
         <div class="dash-header">
-            <div class="dash-title">Geospatial Intelligence Platform</div>
+            <div class="dash-title">OrbitHarbor Operations</div>
             <div class="dash-badge">LIVE</div>
         </div>
         <div class="dash-subtitle">
@@ -1605,7 +1605,7 @@ def main() -> None:
 
     tab1, tab2, tab3, tab4 = st.tabs(
         [
-            "Mission Overview",
+            "Operations Overview",
             "Live Tracking",
             "Land Change Detection",
             "Correlated Events",

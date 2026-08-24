@@ -3,8 +3,8 @@
 kafka:
   bootstrap_servers: kafka:29092
   topics:
-    vessels: ais.vessels
-    aircraft: adsb.aircraft
+    vessels: orbitharbor.vessels
+    aircraft: orbitharbor.aircraft
 
 ais:
   api_key: "YOUR_AISSTREAM_API_KEY_HERE"
@@ -28,7 +28,7 @@ opensky:
 postgis:
   host: postgres
   port: 5432
-  db: geopipeline
+  db: orbitharbor
   user: geo
   password: geo
 
@@ -36,7 +36,7 @@ minio:
   endpoint: minio:9000
   access_key: minioadmin
   secret_key: minioadmin
-  bucket: sentinel-tiles
+  bucket: orbitharbor-imagery
 
 copernicus:
   username: "YOUR_COPERNICUS_EMAIL_HERE"
@@ -48,7 +48,7 @@ copernicus:
   download_url: "https://zipper.dataspace.copernicus.eu/api/v1/dataspace/custom-scripts/sentinel-2"
 
 aoi:
-  name: singapore_strait
+  name: harbor_watch
   bbox:
     min_lat: 1.0
     max_lat: 1.6
@@ -67,6 +67,6 @@ snowflake:
   account: "YOUR_SNOWFLAKE_ACCOUNT_HERE"
   user: "YOUR_SNOWFLAKE_USER_HERE"
   password: "YOUR_SNOWFLAKE_PASSWORD_HERE"
-  database: "GEO_PIPELINE"
+  database: "ORBITHARBOR"
   schema: "PUBLIC"
   warehouse: "YOUR_SNOWFLAKE_WAREHOUSE_HERE"

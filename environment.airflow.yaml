@@ -1,6 +1,6 @@
 # environment.airflow.yaml
 ---
-name: geo-pipeline
+name: orbitharbor
 channels:
   - conda-forge
   - defaults

@@ -1,4 +1,4 @@
-# dags/anomaly_loader_dag.py
+# dags/orbitharbor_anomaly_dag.py
 """
 Anomaly Loader DAG
 
@@ -17,7 +17,7 @@ from airflow.operators.python import PythonOperator
 sys.path.insert(0, "/opt/airflow")
 
 default_args = {
-    "owner": "geo-pipeline",
+    "owner": "orbitharbor",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": False,
@@ -116,7 +116,7 @@ def load_anomalies_to_snowflake() -> None:
 
 
 with DAG(
-    dag_id="anomaly_loader",
+    dag_id="orbitharbor_anomaly_loader",
     description="Loads scored anomaly events from JSON files into Snowflake",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),

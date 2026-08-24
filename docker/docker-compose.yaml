@@ -1,6 +1,6 @@
 # docker/docker-compose.yaml
 ---
-name: geospatial-pipeline
+name: orbitharbor
 
 services:
 
@@ -48,13 +48,13 @@ services:
     environment:
       POSTGRES_USER: geo
       POSTGRES_PASSWORD: geo
-      POSTGRES_DB: geopipeline
+      POSTGRES_DB: orbitharbor
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql
       - ../db/schema.sql:/docker-entrypoint-initdb.d/02_schema.sql
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "geo", "-d", "geopipeline"]
+      test: ["CMD", "pg_isready", "-U", "geo", "-d", "orbitharbor"]
       interval: 5s
       retries: 5
 
@@ -104,14 +104,14 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__WEBSERVER__SECRET_KEY: 'geospatial-pipeline'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'orbitharbor'
     volumes:
       - ../dags:/opt/airflow/dags
       - ../imagery:/opt/airflow/imagery
       - ../config:/opt/airflow/config
       - airflow-logs:/opt/airflow/logs
     command: >
-          bash -c "/opt/conda/envs/geo-pipeline/bin/airflow db migrate && /opt/conda/envs/geo-pipeline/bin/airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+          bash -c "/opt/conda/envs/orbitharbor/bin/airflow db migrate && /opt/conda/envs/orbitharbor/bin/airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
     restart: on-failure
 
   airflow-webserver:
@@ -135,13 +135,13 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__WEBSERVER__SECRET_KEY: 'geospatial-pipeline'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'orbitharbor'
     volumes:
       - ../dags:/opt/airflow/dags
       - ../imagery:/opt/airflow/imagery
       - ../config:/opt/airflow/config
       - airflow-logs:/opt/airflow/logs
-    command: ["/opt/conda/envs/geo-pipeline/bin/airflow", "webserver"]
+    command: ["/opt/conda/envs/orbitharbor/bin/airflow", "webserver"]
 
   airflow-scheduler:
     build:
@@ -167,7 +167,7 @@ services:
       - ../imagery:/opt/airflow/imagery
       - ../config:/opt/airflow/config
       - airflow-logs:/opt/airflow/logs
-    command: ["/opt/conda/envs/geo-pipeline/bin/airflow", "scheduler"]
+    command: ["/opt/conda/envs/orbitharbor/bin/airflow", "scheduler"]
 
   minio-init:
     build:

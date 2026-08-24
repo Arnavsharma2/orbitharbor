@@ -1,4 +1,4 @@
-# dags/imagery_pipeline_dag.py
+# dags/orbitharbor_imagery_dag.py
 """
 Imagery Pipeline DAG
 
@@ -15,7 +15,7 @@ from airflow.operators.python import PythonOperator
 sys.path.insert(0, "/opt/airflow")
 
 default_args = {
-    "owner": "geo-pipeline",
+    "owner": "orbitharbor",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": False,
@@ -53,7 +53,7 @@ def run_anomaly_scorer() -> None:
 
 
 with DAG(
-    dag_id="imagery_pipeline",
+    dag_id="orbitharbor_imagery",
     description="Sentinel-2 fetch, process, upload, change detection, and anomaly scoring",
     default_args=default_args,
     start_date=datetime(2026, 1, 1),

@@ -86,7 +86,7 @@ def main() -> None:
     """
     Run the vessel consumer loop.
 
-    Continuously reads from ais.vessels and upserts
+    Continuously reads from orbitharbor.vessels and upserts
     records into PostGIS vessel_tracks table.
     """
     consumer = build_consumer()

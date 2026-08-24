@@ -86,7 +86,7 @@ def main() -> None:
     """
     Run the aircraft consumer loop.
 
-    Continuously reads from adsb.aircraft and inserts
+    Continuously reads from orbitharbor.aircraft and inserts
     records into PostGIS aircraft_tracks table.
     """
     consumer = build_consumer()
