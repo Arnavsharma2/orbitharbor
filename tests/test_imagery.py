@@ -269,6 +269,28 @@ class TestPatchCNN:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
+    def test_score_patches_uses_bounded_batches(self):
+        """Multiple patches are scored with one model call per batch."""
+        import torch
+        from imagery.patch_classifier import score_patches
+
+        class CountingModel(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.calls = 0
+
+            def forward(self, batch):
+                self.calls += 1
+                return torch.full((len(batch), 1), 0.5)
+
+        model = CountingModel()
+        patches = [np.zeros((16, 16), dtype=np.float32) for _ in range(5)]
+
+        scores = score_patches(model, patches, batch_size=2)
+
+        assert scores == [0.5] * 5
+        assert model.calls == 3
+
 
 class TestAnomalyScorer:
     """Tests for anomaly scoring logic."""

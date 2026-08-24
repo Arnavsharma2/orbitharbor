@@ -22,7 +22,7 @@ from imagery.change_detection import (
     list_dates,
     align_to_reference,
 )
-from imagery.patch_classifier import PatchCNN, load_model, score_patch
+from imagery.patch_classifier import PatchCNN, load_model, score_patches
 
 if not os.environ.get("AIRFLOW_CTX_DAG_ID"):
     setup_logging("anomaly_scorer.log")
@@ -51,13 +51,18 @@ def score_anomalies(
         List of scored anomaly event dicts.
     """
     scored = []
+    patches = [
+        ndvi_delta[
+            anomaly["row"] : anomaly["row"] + patch_size,
+            anomaly["col"] : anomaly["col"] + patch_size,
+        ]
+        for anomaly in anomalies
+    ]
+    cnn_scores = score_patches(model, patches)
 
-    for anomaly in anomalies:
+    for anomaly, cnn_score in zip(anomalies, cnn_scores):
         row = anomaly["row"]
         col = anomaly["col"]
-
-        patch = ndvi_delta[row : row + patch_size, col : col + patch_size]
-        cnn_score = score_patch(model, patch)
 
         # normalize ndvi delta to 0-1 range for combining
         ndvi_score = min(anomaly["mean_delta"] / 1.0, 1.0)

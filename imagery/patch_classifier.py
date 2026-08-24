@@ -205,6 +205,30 @@ def load_model() -> PatchCNN:
     return model
 
 
+def score_patches(
+    model: PatchCNN,
+    patches: list[np.ndarray],
+    batch_size: int = 16,
+) -> list[float]:
+    """Score patches in bounded batches to reduce inference overhead."""
+    if batch_size <= 0:
+        raise ValueError("batch_size must be greater than zero")
+    if not patches:
+        return []
+
+    patch_array = np.stack(
+        [np.resize(patch, (512, 512)) for patch in patches]
+    ).astype(np.float32, copy=False)
+    tensor = torch.from_numpy(patch_array).unsqueeze(1)
+
+    scores = []
+    with torch.inference_mode():
+        for start in range(0, len(tensor), batch_size):
+            batch_scores = model(tensor[start : start + batch_size]).flatten()
+            scores.extend(float(score) for score in batch_scores.tolist())
+    return scores
+
+
 def score_patch(model: PatchCNN, patch: np.ndarray) -> float:
     """
     Score a single patch using the trained model.
@@ -216,11 +240,7 @@ def score_patch(model: PatchCNN, patch: np.ndarray) -> float:
     Returns:
         Anomaly probability score between 0 and 1.
     """
-    patch = np.resize(patch, (512, 512))
-    tensor = torch.tensor(patch, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
-    with torch.no_grad():
-        score = model(tensor).item()
-    return score
+    return score_patches(model, [patch], batch_size=1)[0]
 
 
 def main() -> None:
