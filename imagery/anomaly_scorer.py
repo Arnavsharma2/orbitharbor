@@ -154,7 +154,8 @@ def run(date_old: str, date_new: str) -> list[dict]:
         )
         ndvi_new = align_to_reference(ndvi_new, new_profile, old_profile)
 
-    ndvi_delta = np.abs(ndvi_new - ndvi_old)
+    ndvi_delta = np.subtract(ndvi_new, ndvi_old)
+    np.abs(ndvi_delta, out=ndvi_delta)
 
     anomalies = detect_anomalies(
         ndvi_old,
