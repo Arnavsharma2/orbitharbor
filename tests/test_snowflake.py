@@ -44,6 +44,18 @@ class TestRecordExists:
         assert "row_px" in call_args[0]
         assert "col_px" in call_args[0]
 
+    def test_existing_event_keys_fetches_comparison_once(self):
+        """Bulk duplicate lookup returns all existing patch coordinates."""
+        from snowflake_loader.anomaly_loader import existing_event_keys
+
+        cursor = MagicMock()
+        cursor.fetchall.return_value = [(0, 0), (512, 1024)]
+
+        result = existing_event_keys(cursor, "20260409", "20260411")
+
+        assert result == {(0, 0), (512, 1024)}
+        cursor.execute.assert_called_once()
+
 
 class TestLoadEvents:
     """Tests for event file loading logic."""
@@ -70,7 +82,7 @@ class TestLoadEvents:
         event_file.write_text(json.dumps(events), encoding="utf-8")
 
         cursor = MagicMock()
-        cursor.fetchone.return_value = (0,)
+        cursor.fetchall.return_value = []
 
         count = load_events(event_file, cursor)
         assert count == 1
@@ -98,7 +110,7 @@ class TestLoadEvents:
         event_file.write_text(json.dumps(events), encoding="utf-8")
 
         cursor = MagicMock()
-        cursor.fetchone.return_value = (1,)
+        cursor.fetchall.return_value = [(0, 0)]
 
         count = load_events(event_file, cursor)
         assert count == 0
@@ -125,7 +137,7 @@ class TestLoadEvents:
         event_file.write_text(json.dumps(events), encoding="utf-8")
 
         cursor = MagicMock()
-        cursor.fetchone.return_value = (0,)
+        cursor.fetchall.return_value = []
 
         load_events(event_file, cursor)
 
@@ -157,10 +169,11 @@ class TestLoadEvents:
         event_file.write_text(json.dumps(events), encoding="utf-8")
 
         cursor = MagicMock()
-        cursor.fetchone.return_value = (0,)
+        cursor.fetchall.return_value = []
 
         count = load_events(event_file, cursor)
         assert count == 5
+        assert cursor.execute.call_count == 6
 
 
 class TestSnowflakeSetup:

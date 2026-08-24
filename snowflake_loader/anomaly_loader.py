@@ -71,6 +71,22 @@ def record_exists(
     return cur.fetchone()[0] > 0
 
 
+def existing_event_keys(
+    cur: snowflake.connector.cursor.SnowflakeCursor,
+    date_old: str,
+    date_new: str,
+) -> set[tuple[int, int]]:
+    """Fetch all existing patch coordinates for one imagery comparison."""
+    cur.execute(
+        """
+        SELECT row_px, col_px FROM anomaly_events
+        WHERE date_old = %s AND date_new = %s
+    """,
+        (date_old, date_new),
+    )
+    return {(int(row_px), int(col_px)) for row_px, col_px in cur.fetchall()}
+
+
 def load_events(
     event_file: Path, cur: snowflake.connector.cursor.SnowflakeCursor
 ) -> int:
@@ -93,9 +109,11 @@ def load_events(
 
     loaded = 0
     skipped = 0
+    existing_keys = existing_event_keys(cur, date_old, date_new)
 
     for event in events:
-        if record_exists(cur, date_old, date_new, event["row"], event["col"]):
+        event_key = (event["row"], event["col"])
+        if event_key in existing_keys:
             skipped += 1
             continue
 
@@ -126,6 +144,7 @@ def load_events(
             ),
         )
         loaded += 1
+        existing_keys.add(event_key)
 
     logger.info("File: %s | Loaded: %s | Skipped: %s", event_file.name, loaded, skipped)
     return loaded
