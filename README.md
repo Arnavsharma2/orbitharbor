@@ -17,6 +17,7 @@ OrbitHarbor is an open signal-fusion platform for correlating live vessel and ai
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Features](#features)
+- [Performance](#performance)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Environment Setup](#environment-setup)
@@ -136,6 +137,17 @@ flowchart TD
 - **Loitering Detection** - Identifies vessels with ≥8 pings, avg speed ≤5kn, operating within a 1.5km radius over ≥45 minutes
 - **pytest Suite** - Coverage across ingestion normalization, spatial schema, DAG structure, imagery processing, consumers, MinIO, Snowflake loading, and coordinate validation
 - **Coordinate Quality Guardrails** - Preserves valid Equator and prime-meridian tracks while rejecting missing, non-finite, and out-of-range WGS84 coordinates before they reach PostGIS
+
+---
+
+## Performance
+
+- Vectorized Haversine distance calculations replace row-by-row pandas callbacks during signal correlation.
+- NDVI processing uses float32 arrays, in-place deltas, and vectorized patch aggregation to reduce memory and Python-loop overhead.
+- CNN inference runs in bounded batches so throughput scales without stacking every anomaly patch in memory.
+- Kafka producers use short batching windows, gzip compression, persistent OpenSky HTTP connections, and quieter per-message logging.
+- PostGIS consumers avoid empty transactions, while the Snowflake loader performs one duplicate lookup and one batched insert per event file.
+- CI caches Conda packages, Docker excludes runtime and test artifacts from build contexts, and all environments target Python 3.12.
 
 ---
 
