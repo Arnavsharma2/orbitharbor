@@ -46,6 +46,7 @@ class TestComputeNDVI:
 
         ndvi, _ = compute_ndvi(b04_path, b08_path)
         assert ndvi.shape == (100, 100)
+        assert ndvi.dtype == np.float32
         expected = (3000 - 1000) / (3000 + 1000)
         assert np.allclose(ndvi, expected, atol=0.001)
 

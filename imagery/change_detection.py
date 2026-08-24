@@ -93,16 +93,19 @@ def compute_ndvi(b04_path: Path, b08_path: Path) -> np.ndarray:
         2D numpy array of NDVI values.
     """
     with rasterio.open(b04_path) as src:
-        b04 = src.read(1).astype(float)
+        b04 = src.read(1, out_dtype="float32")
         profile = src.profile.copy()
 
     with rasterio.open(b08_path) as src:
-        b08 = src.read(1).astype(float)
+        b08 = src.read(1, out_dtype="float32")
 
-    np.seterr(divide="ignore", invalid="ignore")
-    ndvi = np.where((b08 + b04) == 0, 0, (b08 - b04) / (b08 + b04))
+    denominator = b08 + b04
+    zero_denominator = denominator == 0
+    np.subtract(b08, b04, out=b08)
+    np.divide(b08, denominator, out=b08, where=~zero_denominator)
+    b08[zero_denominator] = 0
 
-    return ndvi, profile
+    return b08, profile
 
 
 def align_to_reference(
