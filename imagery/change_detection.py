@@ -163,25 +163,37 @@ def detect_anomalies(
     Returns:
         List of anomaly dicts with patch coordinates and delta score.
     """
+    if patch_size <= 0:
+        raise ValueError("patch_size must be greater than zero")
+
     delta = np.abs(ndvi_new - ndvi_old)
-    anomalies = []
-
     rows, cols = delta.shape
-    for row in range(0, rows, patch_size):
-        for col in range(0, cols, patch_size):
-            patch = delta[row : row + patch_size, col : col + patch_size]
-            mean_delta = float(np.mean(patch))
+    if rows == 0 or cols == 0:
+        return []
 
-            if mean_delta >= threshold:
-                anomalies.append(
-                    {
-                        "row": row,
-                        "col": col,
-                        "patch_size": patch_size,
-                        "mean_delta": round(mean_delta, 4),
-                        "max_delta": round(float(np.max(patch)), 4),
-                    }
-                )
+    row_starts = np.arange(0, rows, patch_size)
+    col_starts = np.arange(0, cols, patch_size)
+    row_sizes = np.diff(np.append(row_starts, rows))
+    col_sizes = np.diff(np.append(col_starts, cols))
+
+    patch_sums = np.add.reduceat(delta, row_starts, axis=0)
+    patch_sums = np.add.reduceat(patch_sums, col_starts, axis=1)
+    patch_means = patch_sums / np.outer(row_sizes, col_sizes)
+
+    patch_maxima = np.maximum.reduceat(delta, row_starts, axis=0)
+    patch_maxima = np.maximum.reduceat(patch_maxima, col_starts, axis=1)
+
+    anomalies = []
+    for patch_row, patch_col in np.argwhere(patch_means >= threshold):
+        anomalies.append(
+            {
+                "row": int(row_starts[patch_row]),
+                "col": int(col_starts[patch_col]),
+                "patch_size": patch_size,
+                "mean_delta": round(float(patch_means[patch_row, patch_col]), 4),
+                "max_delta": round(float(patch_maxima[patch_row, patch_col]), 4),
+            }
+        )
 
     logger.info(
         "Detected %s anomaly patches (threshold: %s)", len(anomalies), threshold

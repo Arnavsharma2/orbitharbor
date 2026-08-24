@@ -178,6 +178,28 @@ class TestDetectAnomalies:
         assert anomalies[0]["col"] == 0
         assert anomalies[0]["patch_size"] == 512
 
+    def test_partial_edge_patch_uses_actual_area(self):
+        """Partial patches at raster edges are averaged over existing pixels."""
+        from imagery.change_detection import detect_anomalies
+
+        ndvi_old = np.zeros((3, 3))
+        ndvi_new = np.zeros((3, 3))
+        ndvi_new[2, 2] = 0.8
+
+        anomalies = detect_anomalies(
+            ndvi_old, ndvi_new, patch_size=2, threshold=0.5
+        )
+
+        assert anomalies == [
+            {
+                "row": 2,
+                "col": 2,
+                "patch_size": 2,
+                "mean_delta": 0.8,
+                "max_delta": 0.8,
+            }
+        ]
+
 
 class TestPatchCNN:
     """Tests for PyTorch patch classifier."""
