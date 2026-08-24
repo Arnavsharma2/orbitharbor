@@ -67,19 +67,23 @@ INSERT_SQL = """
 """
 
 
-def insert_aircraft(cursor: psycopg2.extensions.cursor, aircraft: dict) -> None:
+def insert_aircraft(cursor: psycopg2.extensions.cursor, aircraft: dict) -> bool:
     """
     Insert a normalized aircraft record into aircraft_tracks.
 
     Args:
         cursor: Active psycopg2 cursor.
         aircraft: Normalized aircraft dict from Kafka.
+
+    Returns:
+        True when an insert was issued, otherwise False.
     """
     if not coordinates_are_valid(aircraft.get("latitude"), aircraft.get("longitude")):
-        return
+        return False
 
     aircraft["received_at"] = datetime.now(timezone.utc)
     cursor.execute(INSERT_SQL, aircraft)
+    return True
 
 
 def main() -> None:
@@ -102,7 +106,9 @@ def main() -> None:
         for message in consumer:
             aircraft = message.value
             try:
-                insert_aircraft(cursor, aircraft)
+                if not insert_aircraft(cursor, aircraft):
+                    logger.debug("Skipped aircraft with invalid coordinates")
+                    continue
                 conn.commit()
                 logger.info(
                     "Inserted | ICAO: %s | Callsign: %s | Lat: %s Lon: %s | Alt: %sm",

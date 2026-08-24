@@ -157,8 +157,9 @@ class TestAircraftConsumer:
             "source": "opensky",
         }
 
-        insert_aircraft(cursor, aircraft)
+        inserted = insert_aircraft(cursor, aircraft)
         assert not cursor.execute.called
+        assert inserted is False
 
     def test_insert_aircraft_skips_out_of_range_coords(self):
         """insert_aircraft rejects coordinates outside WGS84 bounds."""
@@ -429,3 +430,27 @@ class TestAircraftConsumerMainLoop:
             main()
 
             mock_conn.return_value.commit.assert_called()
+
+    def test_main_avoids_commit_for_invalid_coordinates(self):
+        """Invalid aircraft messages do not create empty transactions."""
+        message = MagicMock(
+            value={"icao24": "abc123", "latitude": 91.0, "longitude": 0.0}
+        )
+
+        with patch(
+            "ingestion.consumers.aircraft_consumer.build_connection"
+        ) as mock_conn, patch(
+            "ingestion.consumers.aircraft_consumer.KafkaConsumer"
+        ) as mock_kafka:
+            mock_kafka.return_value.__iter__ = MagicMock(
+                return_value=iter([message])
+            )
+            mock_cursor = MagicMock()
+            mock_conn.return_value.cursor.return_value = mock_cursor
+
+            from ingestion.consumers.aircraft_consumer import main
+
+            main()
+
+            mock_cursor.execute.assert_not_called()
+            mock_conn.return_value.commit.assert_not_called()
