@@ -217,15 +217,17 @@ def score_patches(
     if not patches:
         return []
 
-    patch_array = np.stack(
-        [np.resize(patch, (512, 512)) for patch in patches]
-    ).astype(np.float32, copy=False)
-    tensor = torch.from_numpy(patch_array).unsqueeze(1)
-
     scores = []
     with torch.inference_mode():
-        for start in range(0, len(tensor), batch_size):
-            batch_scores = model(tensor[start : start + batch_size]).flatten()
+        for start in range(0, len(patches), batch_size):
+            batch_array = np.stack(
+                [
+                    np.resize(patch, (512, 512))
+                    for patch in patches[start : start + batch_size]
+                ]
+            ).astype(np.float32, copy=False)
+            tensor = torch.from_numpy(batch_array).unsqueeze(1)
+            batch_scores = model(tensor).flatten()
             scores.extend(float(score) for score in batch_scores.tolist())
     return scores
 
