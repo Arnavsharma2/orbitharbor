@@ -272,7 +272,8 @@ def main() -> None:
     ndvi_new, new_profile = compute_ndvi(b04_new, b08_new)
     if ndvi_old.shape != ndvi_new.shape:
         ndvi_new = align_to_reference(ndvi_new, new_profile, old_profile)
-    ndvi_delta = np.abs(ndvi_new - ndvi_old)
+    ndvi_delta = np.subtract(ndvi_new, ndvi_old)
+    np.abs(ndvi_delta, out=ndvi_delta)
 
     dataset = build_dataset(
         ndvi_delta,
