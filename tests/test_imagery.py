@@ -291,6 +291,34 @@ class TestPatchCNN:
         assert scores == [0.5] * 5
         assert model.calls == 3
 
+    def test_training_main_unpacks_ndvi_profiles(self):
+        """Classifier training consumes arrays returned with raster profiles."""
+        from imagery import patch_classifier
+
+        profile = {"height": 2, "width": 2}
+        with patch.object(
+            patch_classifier, "list_dates", return_value=["20260101", "20260102"]
+        ), patch.object(
+            patch_classifier, "download_band", side_effect=["b04-old", "b08-old", "b04-new", "b08-new"]
+        ), patch.object(
+            patch_classifier,
+            "compute_ndvi",
+            side_effect=[
+                (np.zeros((2, 2), dtype=np.float32), profile),
+                (np.ones((2, 2), dtype=np.float32), profile),
+            ],
+        ), patch.object(
+            patch_classifier, "build_dataset", return_value=MagicMock()
+        ) as mock_build, patch.object(
+            patch_classifier, "train", side_effect=lambda model, dataset, epochs: model
+        ), patch.object(
+            patch_classifier, "save_model"
+        ):
+            patch_classifier.main()
+
+        delta = mock_build.call_args.args[0]
+        assert np.array_equal(delta, np.ones((2, 2), dtype=np.float32))
+
 
 class TestAnomalyScorer:
     """Tests for anomaly scoring logic."""

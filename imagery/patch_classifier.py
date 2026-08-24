@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader, Dataset
 from config.config_loader import config
 from config.logging_config import setup_logging
 from imagery.change_detection import (
+    align_to_reference,
     compute_ndvi,
     download_band,
     get_client,
@@ -265,8 +266,10 @@ def main() -> None:
     b04_new = download_band(client, bucket, date_new, "B04")
     b08_new = download_band(client, bucket, date_new, "B08")
 
-    ndvi_old = compute_ndvi(b04_old, b08_old)
-    ndvi_new = compute_ndvi(b04_new, b08_new)
+    ndvi_old, old_profile = compute_ndvi(b04_old, b08_old)
+    ndvi_new, new_profile = compute_ndvi(b04_new, b08_new)
+    if ndvi_old.shape != ndvi_new.shape:
+        ndvi_new = align_to_reference(ndvi_new, new_profile, old_profile)
     ndvi_delta = np.abs(ndvi_new - ndvi_old)
 
     dataset = build_dataset(
