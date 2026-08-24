@@ -51,6 +51,7 @@ def score_anomalies(
         List of scored anomaly event dicts.
     """
     scored = []
+    detected_at = datetime.now(timezone.utc).isoformat()
     patches = [
         ndvi_delta[
             anomaly["row"] : anomaly["row"] + patch_size,
@@ -80,7 +81,7 @@ def score_anomalies(
                 "ndvi_score": round(ndvi_score, 4),
                 "cnn_score": round(cnn_score, 4),
                 "confidence": confidence,
-                "detected_at": datetime.now(timezone.utc).isoformat(),
+                "detected_at": detected_at,
             }
         )
 

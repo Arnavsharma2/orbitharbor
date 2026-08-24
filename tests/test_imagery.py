@@ -338,6 +338,29 @@ class TestAnomalyScorer:
         }
         assert required.issubset(scored[0].keys())
 
+    def test_batch_uses_one_detection_timestamp(self):
+        """All events from one scoring run share a batch timestamp."""
+        from imagery.anomaly_scorer import score_anomalies
+        from imagery.patch_classifier import PatchCNN
+
+        model = PatchCNN()
+        model.eval()
+        ndvi_delta = np.full((1024, 512), 0.3, dtype=np.float32)
+        anomalies = [
+            {
+                "row": row,
+                "col": 0,
+                "patch_size": 512,
+                "mean_delta": 0.3,
+                "max_delta": 0.5,
+            }
+            for row in (0, 512)
+        ]
+
+        scored = score_anomalies(anomalies, ndvi_delta, model, patch_size=512)
+
+        assert len({event["detected_at"] for event in scored}) == 1
+
     def test_confidence_is_average(self):
         """Confidence is average of ndvi_score and cnn_score."""
         from imagery.anomaly_scorer import score_anomalies
